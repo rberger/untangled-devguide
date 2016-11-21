@@ -192,7 +192,7 @@
   and also try playing with editing/adding to the DOM.
   ")
 
-(defcard root-render (root {:number 52 :people [{:name "Sam"} {:name "Joe"}]}))
+(defcard root-render (root {:people [{:name "Sam"} {:name "Joe"} {:name "Rob"}] :number 39 }))
 
 (defui Root-computed
   Object
@@ -245,9 +245,9 @@
                                 :boolHandler (fn [] (swap! data-atom-from-devcards update-in [:b] not))}
                  ]
              (root-computed (om/computed prop-data sideband-data))))
-         {:number 42 :people [{:name "Sally"}] :b false}
+         {:number 42 :people [{:name "Joe"}] :b false}
          {:inspect-data true
-          :history      true})
+          :history      false})
 
 (defui SimpleCounter
   Object
@@ -258,7 +258,7 @@
               (dom/button #js {:onClick #(om/update-state! this update :counter inc)}
                           "Increment me!")
               (dom/span nil
-                        (om/get-state this :counter)))))
+                        (str "Yipe "(om/get-state this :counter))))))
 
 (def simple-counter (om/factory SimpleCounter))
 

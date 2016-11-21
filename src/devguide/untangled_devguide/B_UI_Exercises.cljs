@@ -80,23 +80,26 @@
 
 (defui Person
   Object
-  (initLocalState [this] {})                                ; TODO (ex 3): Add initial local state here
+  (initLocalState [this] {:checked true}) ; TODO (ex 3): Add initial local state here
 
   (render [this]
     ;; TODO: (ex 4) Obtain the 'computed' onDelete handler
-    (let [name "What's my :person/name?"                    ; TODO (ex 1): Get the Om properties from this for `name` and `mate`
-          mate nil
-          checked false]                                    ; TODO (ex 3): Component local state
+          (let [{:keys [person/name]} (om/props this) ; TODO (ex 1): Get the Om properties from this for `name` and `mate`
+                {:keys [person/mate]} (om/props this)
+                {:keys  [onDelete]} (om/get-computed this)
+                - (js/console.log "Person onDelete: " onDelete)
+                checked (om/get-state this :checked)] ; TODO (ex 3): Component local state
       (dom/li nil
         (dom/input #js {:type    "checkbox"
-                        :onClick (fn [e] (println "TODO ex 3"))
-                        :checked false                      ; TODO (ex 3): Modify local state
+                        :onClick (fn [e] (om/update-state! this update :checked not checked))
+                        :checked checked                      ; TODO (ex 3): Modify local state
                         })
-        (dom/span nil name)                                 ; TODO (ex 3): Make name bold when checked
-        (dom/button nil "X")                                ; TODO (ex 4): Call onDelete handler, if present
-        (when mate (dom/ul nil (om-person mate)))))))
+        (dom/span (if checked #js {:style #js {:font-weight "bold"}}) nil name) ; TODO (ex 3): Make name bold when checked
+        (dom/button #js {:onClick #(onDelete name)} nil "Y")                                ; TODO (ex 4): Call onDelete handler, if present
+        (when mate (dom/ul nil (om-person (om/computed mate {:onDelete onDelete}))))))))
 
 (def om-person (om/factory Person))
+;(om-person )
 
 (defcard exercise-1
   "## Exercise 1 - A UI component
@@ -117,25 +120,29 @@
 (defui PeopleWidget
   Object
   (render [this]
-    ;; TODO (ex 4): Create a deletePerson function
-    (let [people []]                                        ; TODO (ex 2): `people` should come from the props
-      (dom/div nil
-        (if (= nil people)
-          (dom/span nil "Loading...")
-          (dom/div nil
-            (dom/button #js {} "Save")
-            (dom/button #js {} "Refresh List")
-            ;; TODO (ex 4): Pass deletePerson as the onDelete handler to person element
-            (dom/ul nil (map #(om-person %) people))))))))
+          ;; TODO (ex 4): Create a deletePerson function
+          (let [{:keys [people]} (om/props this)
+                deletePerson (fn [p] (js/console.log "YAY delete p: " p))
+                ]                                        ; TODO (ex 2): `people` should come from the props
+            (dom/div nil
+                     (if (= nil people)
+                       (dom/span nil "Loading...")
+                       (dom/div nil
+                                (dom/button #js {} "Save")
+                                (dom/button #js {} "Refresh List")
+                                ;; TODO (ex 4): Pass deletePerson as the onDelete handler to person element
+                                ;;            (dom/ul nil (map #(om-person % (om/computed this sideband-data)) people))
+                                (js/console.log "PeopleWidget deletePerson: " deletePerson)
+                                (dom/ul nil (map #(om-person (om/computed % {:onDelete deletePerson})) people))))))))
 
 (def people-widget (om/factory PeopleWidget))
 
 (defui Root
   Object
   (render [this]
-    (let [widget nil
-          new-person nil
-          last-error nil]                                   ; TODO (ex 2): Extract the proper props for each var.
+          (let [{:keys [widget]} (om/props this)
+                {:keys [new-person]} (om/props this)
+                {:keys [last-error]}  (om/props this)]                                   ; TODO (ex 2): Extract the proper props for each var.
       (dom/div nil
         (dom/div nil (when (not= "" last-error) (str "Error " last-error)))
         (dom/div nil
